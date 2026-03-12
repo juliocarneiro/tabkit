@@ -161,8 +161,8 @@ describe('TabPlayer', () => {
     })
     player.play()
 
-    // 6 beats total (4 + 2), each 500ms at 120 BPM
-    for (let i = 0; i < 6; i++) {
+    // M0: 4 quarter beats (4×500ms) + M1: 2 quarter beats (2×500ms) + rest padding (2 beats = 1000ms)
+    for (let i = 0; i < 8; i++) {
       advance(510)
     }
 
@@ -179,8 +179,8 @@ describe('TabPlayer', () => {
     })
     player.play()
 
-    // Advance through all 6 beats + 1 more
-    for (let i = 0; i < 7; i++) {
+    // Advance through all 6 written beats + rest padding (2 beats = 1000ms) + 1 more for loop
+    for (let i = 0; i < 9; i++) {
       advance(510)
     }
 

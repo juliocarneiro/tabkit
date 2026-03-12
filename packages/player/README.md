@@ -62,6 +62,10 @@ new TabPlayer(measures: TabMeasure[], options?: PlayerOptions)
 | `detachSvg()` | Detach from SVG |
 | `destroy()` | Stop and clean up |
 
+### Measure Padding
+
+The player automatically pads incomplete measures with silence. If a measure in 4/4 time only contains 2 quarter notes (2 beats), the player waits an additional 2 beats of rest before advancing to the next measure, ensuring correct rhythmic timing between transitions.
+
 ### State
 
 ```typescript

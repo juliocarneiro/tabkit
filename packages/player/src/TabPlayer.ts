@@ -148,11 +148,22 @@ export class TabPlayer {
     this._beatMap = []
     for (let mi = 0; mi < this._measures.length; mi++) {
       const m = this._measures[mi]
+      let writtenBeats = 0
+
       for (let bi = 0; bi < m.beats.length; bi++) {
         const notes = flattenBeat(m.beats[bi])
         const durations = notes.map((n) => durationToBeats(n.duration))
         const dur = durations.length > 0 ? Math.max(...durations) : 1
         this._beatMap.push({ measure: mi, beat: bi, durationBeats: dur })
+        writtenBeats += dur
+      }
+
+      const ts = m.timeSignature ?? [4, 4]
+      const expectedBeats = ts[0] * (4 / ts[1])
+      const remainder = expectedBeats - writtenBeats
+
+      if (remainder > 0.01) {
+        this._beatMap.push({ measure: mi, beat: -1, durationBeats: remainder })
       }
     }
   }
@@ -178,32 +189,31 @@ export class TabPlayer {
     const bp = this._beatMap[this._index]
     if (!bp) return
 
-    // Update state
-    this._state.currentMeasure = bp.measure
-    this._state.currentBeat = bp.beat
-
     const quarterNoteMs = (60 / this._options.tempo) * 1000
     const beatMs = bp.durationBeats * quarterNoteMs
     this._state.elapsedMs += beatMs
 
-    // Fire callbacks
-    this._options.onBeat?.(bp.measure, bp.beat)
-    if (bp.beat === 0) {
-      this._options.onMeasure?.(bp.measure)
-    }
+    const isRest = bp.beat < 0
 
-    // Audio: fire with actual note data for this beat
-    if (this._options.onNote) {
-      const notes = flattenBeat(this._measures[bp.measure].beats[bp.beat])
-      this._options.onNote(notes, bp.measure, bp.beat, this._options.tempo)
-    }
+    if (!isRest) {
+      this._state.currentMeasure = bp.measure
+      this._state.currentBeat = bp.beat
 
-    // Visual feedback
-    this._cursor.highlightBeat(bp.measure, bp.beat)
+      this._options.onBeat?.(bp.measure, bp.beat)
+      if (bp.beat === 0) {
+        this._options.onMeasure?.(bp.measure)
+      }
+
+      if (this._options.onNote) {
+        const notes = flattenBeat(this._measures[bp.measure].beats[bp.beat])
+        this._options.onNote(notes, bp.measure, bp.beat, this._options.tempo)
+      }
+
+      this._cursor.highlightBeat(bp.measure, bp.beat)
+    }
 
     this._index++
 
-    // Schedule next beat with duration-proportional delay
     this._scheduleNextWithDelay(beatMs)
   }
 

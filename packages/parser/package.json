@@ -1,6 +1,6 @@
 {
   "name": "@tabkit/parser",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "Parse ASCII tabs and MusicXML into tabkit-compatible JSON",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -28,7 +28,7 @@
     "clean": "rm -rf dist"
   },
   "peerDependencies": {
-    "@tabkit/core": "^0.1.2"
+    "@tabkit/core": "^0.1.3"
   },
   "keywords": [
     "tablature",
