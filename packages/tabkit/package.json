@@ -1,0 +1,60 @@
+{
+  "name": "tabkit",
+  "version": "0.1.0",
+  "description": "Modern, responsive SVG tablature renderer for any stringed instrument",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "@chordkit/theory": ">=0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@chordkit/theory": {
+      "optional": true
+    }
+  },
+  "keywords": [
+    "tablature",
+    "tab",
+    "guitar",
+    "bass",
+    "svg",
+    "music",
+    "notation",
+    "accessible",
+    "a11y"
+  ],
+  "license": "MIT",
+  "author": "Julio Carneiro",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/juliocarneiro/tabkit"
+  },
+  "homepage": "https://github.com/juliocarneiro/tabkit#readme",
+  "bugs": {
+    "url": "https://github.com/juliocarneiro/tabkit/issues"
+  },
+  "sideEffects": false
+}

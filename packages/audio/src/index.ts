@@ -1,0 +1,5 @@
+export { TabAudio } from './TabAudio.js'
+export { Synth } from './synth.js'
+export { fretToMidi, midiToFrequency, fretToFrequency, TUNING_MIDI } from './pitch.js'
+export { applyEnvelope, PLUCK_ENVELOPE } from './envelope.js'
+export type { AudioOptions, EnvelopeParams } from './types.js'

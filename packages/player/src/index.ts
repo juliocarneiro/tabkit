@@ -1,0 +1,5 @@
+export { TabPlayer } from './TabPlayer.js'
+export { Metronome } from './metronome.js'
+export type { MetronomeOptions } from './metronome.js'
+export { CursorSync } from './cursor-sync.js'
+export type { PlayerOptions, PlayerState, CursorPosition } from './types.js'
