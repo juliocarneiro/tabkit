@@ -1,4 +1,4 @@
-import type { TabMeasure, TabNote, TabBeat, Duration } from 'tabkit'
+import type { TabMeasure, TabNote, TabBeat, Duration } from '@tabkit/core'
 import type { MusicXMLParseOptions } from './types.js'
 
 /**

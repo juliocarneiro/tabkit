@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { fretToMidi, midiToFrequency, fretToFrequency, TUNING_MIDI } from '../src/pitch.js'
 import { applyEnvelope, PLUCK_ENVELOPE } from '../src/envelope.js'
-import type { InstrumentConfig } from 'tabkit'
+import type { InstrumentConfig } from '@tabkit/core'
 
 const GUITAR: InstrumentConfig = {
   strings: 6,

@@ -223,7 +223,7 @@ function TabWithChords() {
 
 | Package | Description |
 |---------|-------------|
-| [`tabkit`](../tabkit) | Core SVG tablature renderer |
+| [`@tabkit/core`](../tabkit) | Core SVG tablature renderer |
 | [`@tabkit/parser`](../parser) | Parse ASCII tabs and MusicXML |
 | [`@tabkit/player`](../player) | Playback with cursor and metronome |
 | [`@tabkit/audio`](../audio) | Web Audio API synthesis |

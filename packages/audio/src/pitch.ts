@@ -1,4 +1,4 @@
-import type { InstrumentConfig } from 'tabkit'
+import type { InstrumentConfig } from '@tabkit/core'
 
 /**
  * Standard open-string MIDI note numbers for built-in instruments.

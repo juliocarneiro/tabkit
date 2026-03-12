@@ -1,4 +1,4 @@
-import type { TabOptions, TabMeasure, InstrumentPreset, InstrumentConfig, ThemePreset, TabTheme, TabNote } from 'tabkit'
+import type { TabOptions, TabMeasure, InstrumentPreset, InstrumentConfig, ThemePreset, TabTheme, TabNote } from '@tabkit/core'
 import type { CSSProperties } from 'react'
 
 export interface TabSheetProps extends Omit<TabOptions, 'onNoteClick'> {

@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react'
-import { TabRenderer } from 'tabkit'
+import { TabRenderer } from '@tabkit/core'
 import { TabPlayer } from '@tabkit/player'
 import type { UseTabPlayerOptions, UseTabPlayerReturn } from './types.js'
 
@@ -63,7 +63,7 @@ export function useTabPlayer(options: UseTabPlayerOptions): UseTabPlayerReturn {
         setCurrentBeat(b)
         onBeatRef.current?.(m, b)
       },
-      onNote: (notes: import('tabkit').TabNote[], m: number, b: number, t: number) => {
+      onNote: (notes: import('@tabkit/core').TabNote[], m: number, b: number, t: number) => {
         onNoteRef.current?.(notes, m, b, t)
       },
       onEnd: () => {

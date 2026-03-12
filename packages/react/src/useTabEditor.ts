@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
-import { TabRenderer, resolveInstrument } from 'tabkit'
-import type { TabMeasure } from 'tabkit'
+import { TabRenderer, resolveInstrument } from '@tabkit/core'
+import type { TabMeasure } from '@tabkit/core'
 import type { UseTabEditorOptions, UseTabEditorReturn } from './types.js'
 
 /**

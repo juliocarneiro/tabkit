@@ -5,7 +5,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build -w tabkit && npm run build -w @tabkit/parser -w @tabkit/player -w @tabkit/audio && npm run build -w @tabkit/react",
+    "build": "npm run build -w @tabkit/core && npm run build -w @tabkit/parser -w @tabkit/player -w @tabkit/audio && npm run build -w @tabkit/react",
     "test": "npm run test --workspaces",
     "clean": "npm run clean --workspaces"
   },

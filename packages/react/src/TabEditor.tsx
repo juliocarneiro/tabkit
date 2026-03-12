@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
-import { TabRenderer, resolveInstrument, DEFAULT_LAYOUT } from 'tabkit'
-import type { TabMeasure, TabNote, Duration } from 'tabkit'
+import { TabRenderer, resolveInstrument, DEFAULT_LAYOUT } from '@tabkit/core'
+import type { TabMeasure, TabNote, Duration } from '@tabkit/core'
 import type { TabEditorProps } from './types.js'
 
 function createEmptyMeasures(count: number): TabMeasure[] {

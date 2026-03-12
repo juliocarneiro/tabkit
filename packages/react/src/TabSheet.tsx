@@ -1,5 +1,5 @@
 import { useRef, useEffect, useMemo } from 'react'
-import { TabRenderer, flattenBeat } from 'tabkit'
+import { TabRenderer, flattenBeat } from '@tabkit/core'
 import type { TabSheetProps } from './types.js'
 
 /**

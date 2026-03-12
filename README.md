@@ -6,7 +6,7 @@ Modern, responsive SVG tablature renderer for any stringed instrument. Zero depe
 
 | Package | Description | Install |
 |---------|-------------|---------|
-| [`tabkit`](./packages/tabkit) | Core library — SVG rendering, themes, reflow layout, export | `npm install tabkit` |
+| [`@tabkit/core`](./packages/tabkit) | Core library — SVG rendering, themes, reflow layout, export | `npm install @tabkit/core` |
 | [`@tabkit/parser`](./packages/parser) | Parse ASCII tabs and MusicXML into JSON | `npm install @tabkit/parser` |
 | [`@tabkit/player`](./packages/player) | Playback engine with cursor sync and metronome | `npm install @tabkit/player` |
 | [`@tabkit/react`](./packages/react) | React components and hooks — TabSheet, TabPlayer, TabEditor | `npm install @tabkit/react` |
@@ -33,13 +33,13 @@ Modern, responsive SVG tablature renderer for any stringed instrument. Zero depe
 ## Quick Start
 
 ```bash
-npm install tabkit
+npm install @tabkit/core
 ```
 
 ### Static SVG string (SSR / Node.js)
 
 ```typescript
-import { TabRenderer } from 'tabkit'
+import { TabRenderer } from '@tabkit/core'
 
 const svg = TabRenderer.svg({
   measures: [
@@ -62,7 +62,7 @@ const svg = TabRenderer.svg({
 ### Builder API (Browser)
 
 ```typescript
-import { TabRenderer } from 'tabkit'
+import { TabRenderer } from '@tabkit/core'
 
 new TabRenderer('#my-container')
   .measures([
@@ -186,7 +186,7 @@ Harmonics are rendered with angle brackets (e.g. `⟨12⟩`) to visually disting
 ## Export (PNG / Data URL / Download)
 
 ```typescript
-import { TabRenderer } from 'tabkit'
+import { TabRenderer } from '@tabkit/core'
 
 // SVG as base64 data URL
 const dataUrl = TabRenderer.toSVGDataURL(options)

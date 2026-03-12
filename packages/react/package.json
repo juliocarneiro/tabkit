@@ -1,6 +1,6 @@
 {
   "name": "@tabkit/react",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "React components and hooks for tabkit — TabSheet, TabPlayer, TabEditor",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -30,8 +30,8 @@
   "peerDependencies": {
     "react": ">=17",
     "react-dom": ">=17",
-    "tabkit": "^0.1.0",
-    "@tabkit/player": "^0.1.0"
+    "@tabkit/core": "^0.1.2",
+    "@tabkit/player": "^0.1.2"
   },
   "devDependencies": {
     "@types/react": "^18.0.0",

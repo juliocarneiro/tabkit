@@ -73,11 +73,11 @@ parseMusicXML(xmlString, {
 
 ## Output Format
 
-Both parsers return `TabMeasure[]`, compatible with `tabkit`:
+Both parsers return `TabMeasure[]`, compatible with `@tabkit/core`:
 
 ```typescript
 import { parseAsciiTab } from '@tabkit/parser'
-import { TabRenderer } from 'tabkit'
+import { TabRenderer } from '@tabkit/core'
 
 const measures = parseAsciiTab(asciiTab)
 const svg = TabRenderer.svg({ measures, instrument: 'guitar', theme: 'dark' })
@@ -87,7 +87,7 @@ const svg = TabRenderer.svg({ measures, instrument: 'guitar', theme: 'dark' })
 
 | Package | Description |
 |---------|-------------|
-| [`tabkit`](../tabkit) | Core SVG tablature renderer |
+| [`@tabkit/core`](../tabkit) | Core SVG tablature renderer |
 | [`@tabkit/player`](../player) | Playback with cursor and metronome |
 | [`@tabkit/audio`](../audio) | Web Audio API synthesis |
 | [`@tabkit/react`](../react) | React components and hooks |

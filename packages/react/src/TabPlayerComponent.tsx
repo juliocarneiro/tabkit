@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react'
-import { TabRenderer, flattenBeat } from 'tabkit'
+import { TabRenderer, flattenBeat } from '@tabkit/core'
 import { TabPlayer as TabPlayerEngine } from '@tabkit/player'
 import type { TabPlayerProps } from './types.js'
 
@@ -70,7 +70,7 @@ export function TabPlayer(props: TabPlayerProps) {
         setCurrentBeat(b)
         onBeatRef.current?.(m, b)
       },
-      onNote: (notes: import('tabkit').TabNote[], m: number, b: number, t: number) => {
+      onNote: (notes: import('@tabkit/core').TabNote[], m: number, b: number, t: number) => {
         onNoteRef.current?.(notes, m, b, t)
       },
       onEnd: () => {
@@ -116,7 +116,7 @@ export function TabPlayer(props: TabPlayerProps) {
         const matched = notes.find((n) => n.string === si && n.fret === fi)
 
         onNoteClickRef.current?.(
-          matched ?? { string: si, fret: fi, duration: '4n' as import('tabkit').Duration },
+          matched ?? { string: si, fret: fi, duration: '4n' as import('@tabkit/core').Duration },
           mi,
           bi,
         )

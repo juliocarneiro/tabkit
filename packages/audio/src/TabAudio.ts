@@ -1,5 +1,5 @@
-import type { TabNote, InstrumentConfig, InstrumentPreset } from 'tabkit'
-import { resolveInstrument, durationToBeats } from 'tabkit'
+import type { TabNote, InstrumentConfig, InstrumentPreset } from '@tabkit/core'
+import { resolveInstrument, durationToBeats } from '@tabkit/core'
 import type { AudioOptions } from './types.js'
 import { fretToFrequency } from './pitch.js'
 import { Synth } from './synth.js'

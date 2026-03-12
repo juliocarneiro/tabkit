@@ -1,5 +1,5 @@
-import type { TabMeasure } from 'tabkit'
-import { flattenBeat, durationToBeats } from 'tabkit'
+import type { TabMeasure } from '@tabkit/core'
+import { flattenBeat, durationToBeats } from '@tabkit/core'
 import type { PlayerOptions, PlayerState } from './types.js'
 import { CursorSync } from './cursor-sync.js'
 
@@ -24,7 +24,7 @@ export class TabPlayer {
     countIn: boolean
     onBeat?: (measure: number, beat: number) => void
     onMeasure?: (measure: number) => void
-    onNote?: (notes: import('tabkit').TabNote[], measure: number, beat: number, tempo: number) => void
+    onNote?: (notes: import('@tabkit/core').TabNote[], measure: number, beat: number, tempo: number) => void
     onEnd?: () => void
   }
   private _cursor = new CursorSync()

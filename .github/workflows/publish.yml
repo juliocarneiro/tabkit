@@ -23,8 +23,8 @@ jobs:
 
       - run: npm test
 
-      - name: Publish tabkit
-        run: npm publish --workspace=packages/tabkit
+      - name: Publish @tabkit/core
+        run: npm publish --workspace=packages/tabkit --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

@@ -1,4 +1,4 @@
-export type { TabNote, InstrumentConfig, InstrumentPreset } from 'tabkit'
+export type { TabNote, InstrumentConfig, InstrumentPreset } from '@tabkit/core'
 
 export interface AudioOptions {
   /** Master volume (0–1). Default: 0.7 */
@@ -6,7 +6,7 @@ export interface AudioOptions {
   /** Oscillator waveform. Default: 'triangle' */
   waveform?: OscillatorType
   /** Instrument tuning — used to map string+fret to pitch */
-  instrument?: import('tabkit').InstrumentPreset | import('tabkit').InstrumentConfig
+  instrument?: import('@tabkit/core').InstrumentPreset | import('@tabkit/core').InstrumentConfig
 }
 
 export interface EnvelopeParams {

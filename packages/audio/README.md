@@ -8,7 +8,7 @@ Web Audio API synthesis engine for [tabkit](../tabkit) — play notes during tab
 npm install @tabkit/audio
 ```
 
-Peer dependency: `tabkit ^0.1.0`.
+Peer dependency: `@tabkit/core ^0.1.0`.
 
 ## Quick Start
 
@@ -136,7 +136,7 @@ import { applyEnvelope, PLUCK_ENVELOPE } from '@tabkit/audio'
 
 | Package | Description |
 |---------|-------------|
-| [`tabkit`](../tabkit) | Core SVG tablature renderer |
+| [`@tabkit/core`](../tabkit) | Core SVG tablature renderer |
 | [`@tabkit/parser`](../parser) | Parse ASCII tabs and MusicXML |
 | [`@tabkit/player`](../player) | Playback with cursor and metronome |
 | [`@tabkit/react`](../react) | React components and hooks |

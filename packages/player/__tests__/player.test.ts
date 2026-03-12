@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { Metronome } from '../src/metronome.js'
 import { TabPlayer } from '../src/TabPlayer.js'
-import type { TabMeasure } from 'tabkit'
+import type { TabMeasure } from '@tabkit/core'
 
 let fakeTime = 0
 

@@ -1,4 +1,4 @@
-import type { TabMeasure, TabNote } from 'tabkit'
+import type { TabMeasure, TabNote } from '@tabkit/core'
 export type { TabMeasure, TabNote }
 
 export interface PlayerOptions {

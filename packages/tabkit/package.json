@@ -1,6 +1,6 @@
 {
-  "name": "tabkit",
-  "version": "0.1.1",
+  "name": "@tabkit/core",
+  "version": "0.1.2",
   "description": "Modern, responsive SVG tablature renderer for any stringed instrument",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

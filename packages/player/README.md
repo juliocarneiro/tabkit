@@ -76,7 +76,7 @@ player.state          // { isPlaying, currentMeasure, currentBeat, tempo, elapse
 The player can attach to a rendered tabkit SVG to animate the playback cursor and highlight active notes:
 
 ```typescript
-import { TabRenderer } from 'tabkit'
+import { TabRenderer } from '@tabkit/core'
 import { TabPlayer } from '@tabkit/player'
 
 const container = document.getElementById('tab')!
@@ -134,7 +134,7 @@ Tempo is clamped between 20 and 400 BPM. Sound gracefully degrades in environmen
 
 | Package | Description |
 |---------|-------------|
-| [`tabkit`](../tabkit) | Core SVG tablature renderer |
+| [`@tabkit/core`](../tabkit) | Core SVG tablature renderer |
 | [`@tabkit/parser`](../parser) | Parse ASCII tabs and MusicXML |
 | [`@tabkit/audio`](../audio) | Web Audio API synthesis |
 | [`@tabkit/react`](../react) | React components and hooks |

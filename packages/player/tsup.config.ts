@@ -8,5 +8,5 @@ export default defineConfig({
   sourcemap: true,
   minify: true,
   treeshake: true,
-  external: ['tabkit'],
+  external: ['@tabkit/core'],
 })

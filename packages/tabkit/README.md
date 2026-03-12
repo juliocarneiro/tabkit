@@ -1,11 +1,11 @@
-# tabkit
+# @tabkit/core
 
 Modern, responsive SVG tablature renderer for any stringed instrument. Zero dependencies, ~5KB gzipped.
 
 ## Install
 
 ```bash
-npm install tabkit
+npm install @tabkit/core
 ```
 
 ## Quick Start
@@ -13,7 +13,7 @@ npm install tabkit
 ### Static SVG (SSR / Node.js)
 
 ```typescript
-import { TabRenderer } from 'tabkit'
+import { TabRenderer } from '@tabkit/core'
 
 const svg = TabRenderer.svg({
   measures: [
@@ -173,7 +173,7 @@ TabRenderer.svg({
 For programmatic control, use `reflowMeasures()` directly:
 
 ```typescript
-import { reflowMeasures, resolveInstrument, DEFAULT_LAYOUT } from 'tabkit'
+import { reflowMeasures, resolveInstrument, DEFAULT_LAYOUT } from '@tabkit/core'
 
 const inst = resolveInstrument('guitar')
 const result = reflowMeasures(measures, inst, DEFAULT_LAYOUT, 600)
@@ -197,7 +197,7 @@ Harmonics are rendered with angle brackets (e.g. `⟨12⟩`) to visually disting
 Use `leftHanded: true` in options for automatic mirroring, or call `mirrorMeasures()` directly:
 
 ```typescript
-import { mirrorMeasures, resolveInstrument } from 'tabkit'
+import { mirrorMeasures, resolveInstrument } from '@tabkit/core'
 
 const inst = resolveInstrument('guitar')
 const mirrored = mirrorMeasures(measures, inst)
@@ -209,7 +209,7 @@ const mirrored = mirrorMeasures(measures, inst)
 Auto-generated ARIA labels for screen readers:
 
 ```typescript
-import { generateAriaTitle, generateAriaDescription, resolveInstrument } from 'tabkit'
+import { generateAriaTitle, generateAriaDescription, resolveInstrument } from '@tabkit/core'
 
 const inst = resolveInstrument('guitar')
 const title = generateAriaTitle({ measures, instrument: 'guitar' }, inst)
@@ -241,7 +241,7 @@ import {
   GUITAR, BASS, UKULELE, BANJO,  // InstrumentConfig presets
   DEFAULT_LAYOUT,                  // LayoutMetrics defaults
   lightTheme, darkTheme,           // TabTheme objects
-} from 'tabkit'
+} from '@tabkit/core'
 
 GUITAR   // { strings: 6, frets: 24, tuning: ['E','B','G','D','A','E'] }
 BASS     // { strings: 4, frets: 24, tuning: ['G','D','A','E'] }
@@ -254,7 +254,7 @@ BANJO    // { strings: 5, frets: 22, tuning: ['D','B','G','D','G'] }
 ### Resolvers
 
 ```typescript
-import { resolveInstrument, resolveTheme } from 'tabkit'
+import { resolveInstrument, resolveTheme } from '@tabkit/core'
 
 const inst = resolveInstrument('guitar')    // full InstrumentConfig
 const theme = resolveTheme('dark')          // full TabTheme
@@ -264,7 +264,7 @@ const custom = resolveTheme({ background: '#000' }) // merges with light default
 ### Duration & Measure Helpers
 
 ```typescript
-import { durationToBeats, measureDurationBeats, flattenBeat } from 'tabkit'
+import { durationToBeats, measureDurationBeats, flattenBeat } from '@tabkit/core'
 
 durationToBeats('4n')            // 1
 durationToBeats('8n')            // 0.5
@@ -280,7 +280,7 @@ flattenBeat([note1, note2])                            // [note1, note2]
 ### Layout Helpers
 
 ```typescript
-import { measureWidth, layoutMeasures, DEFAULT_LAYOUT } from 'tabkit'
+import { measureWidth, layoutMeasures, DEFAULT_LAYOUT } from '@tabkit/core'
 
 const w = measureWidth(measure, DEFAULT_LAYOUT)  // pixel width of one measure
 const positions = layoutMeasures(measures, DEFAULT_LAYOUT, 0)

@@ -8,7 +8,7 @@ export default defineConfig({
   sourcemap: true,
   minify: true,
   treeshake: true,
-  external: ['react', 'react-dom', 'react/jsx-runtime', 'tabkit', '@tabkit/player'],
+  external: ['react', 'react-dom', 'react/jsx-runtime', '@tabkit/core', '@tabkit/player'],
   esbuildOptions(options) {
     options.jsx = 'automatic'
   },

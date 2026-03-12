@@ -1,6 +1,6 @@
 {
   "name": "@tabkit/audio",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Web Audio API synthesis engine for tabkit — play notes during tablature playback",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -28,7 +28,7 @@
     "clean": "rm -rf dist"
   },
   "peerDependencies": {
-    "tabkit": "^0.1.0"
+    "@tabkit/core": "^0.1.2"
   },
   "keywords": [
     "tablature",
