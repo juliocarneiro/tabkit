@@ -1,6 +1,6 @@
 {
   "name": "@tabkit/player",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Playback engine with cursor sync and metronome for tabkit tablatures",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

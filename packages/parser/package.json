@@ -1,6 +1,6 @@
 {
   "name": "@tabkit/parser",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Parse ASCII tabs and MusicXML into tabkit-compatible JSON",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
