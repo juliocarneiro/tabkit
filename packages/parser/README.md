@@ -42,6 +42,7 @@ E|---x---1---3---|---x---1---3---|
 ```typescript
 parseAsciiTab(input, {
   defaultDuration: '4n',   // default: '8n'
+  strings: 6,              // only needed when systems are stacked with no blank line
 })
 ```
 

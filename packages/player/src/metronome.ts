@@ -33,7 +33,7 @@ export class Metronome {
   private _ctx: AudioContext | null = null
 
   constructor(options: MetronomeOptions) {
-    this._tempo = options.tempo
+    this._tempo = Metronome._clamp(options.tempo)
     this._onTick = options.onTick
     this._sound = options.sound ?? true
     this._volume = options.volume ?? 0.5
@@ -46,10 +46,12 @@ export class Metronome {
   }
 
   set tempo(bpm: number) {
-    this._tempo = Math.max(20, Math.min(400, bpm))
-    if (this._running) {
-      this._nextTickTime = performance.now() + this.intervalMs
-    }
+    // The pending tick keeps its slot; the new interval applies from then on
+    this._tempo = Metronome._clamp(bpm)
+  }
+
+  private static _clamp(bpm: number): number {
+    return Math.max(20, Math.min(400, Number(bpm) || 120))
   }
 
   get intervalMs(): number {
@@ -151,8 +153,8 @@ export class Metronome {
 
     this._onTick?.()
     this._nextTickTime += this.intervalMs
-    const drift = performance.now() - this._nextTickTime
-    const nextDelay = Math.max(1, this.intervalMs - drift)
+    // Schedule against the ideal timeline so timer jitter never accumulates
+    const nextDelay = Math.max(1, this._nextTickTime - performance.now())
 
     this._timer = setTimeout(() => this._scheduleTick(), nextDelay)
   }

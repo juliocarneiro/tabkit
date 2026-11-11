@@ -1,5 +1,5 @@
 import type { TabMeasure, TabLine, LayoutMetrics, InstrumentConfig } from '../types.js'
-import { measureWidth } from './horizontal.js'
+import { measureWidth, timeSignatureFlags } from './horizontal.js'
 
 export interface ReflowResult {
   lines: TabLine[]
@@ -11,7 +11,8 @@ export interface ReflowResult {
  * Each TabLine contains the measures that fit on that row.
  *
  * The reflow algorithm greedily fills each line, inserting a break
- * when the next measure would overflow.
+ * when the next measure would overflow. Pass `showTimeSignature` so the
+ * room taken by time signatures is accounted for.
  */
 export function reflowMeasures(
   measures: TabMeasure[],
@@ -19,12 +20,14 @@ export function reflowMeasures(
   layoutMetrics: LayoutMetrics,
   availableWidth: number,
   showTuning = true,
+  showTimeSignature = false,
 ): ReflowResult {
   const contentWidth =
     availableWidth - layoutMetrics.marginLeft - layoutMetrics.marginRight
 
   const tuningOffset = showTuning ? layoutMetrics.tuningWidth : 0
   const usable = contentWidth - tuningOffset
+  const flags = showTimeSignature ? timeSignatureFlags(measures) : []
 
   const lines: TabLine[] = []
   let currentLine: TabMeasure[] = []
@@ -32,7 +35,7 @@ export function reflowMeasures(
   let startIdx = 0
 
   for (let i = 0; i < measures.length; i++) {
-    const w = measureWidth(measures[i], layoutMetrics)
+    const w = measureWidth(measures[i], layoutMetrics, flags[i] ?? false)
 
     if (currentLine.length > 0 && currentWidth + w > usable) {
       lines.push({ measures: currentLine, startMeasureIndex: startIdx })

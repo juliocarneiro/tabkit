@@ -25,6 +25,7 @@ export class TabPlayer {
     onBeat?: (measure: number, beat: number) => void
     onMeasure?: (measure: number) => void
     onNote?: (notes: import('@tabkit/core').TabNote[], measure: number, beat: number, tempo: number) => void
+    onCountIn?: (beat: number, total: number) => void
     onEnd?: () => void
   }
   private _cursor = new CursorSync()
@@ -34,6 +35,7 @@ export class TabPlayer {
   private _index = 0
   private _pendingTimer: ReturnType<typeof setTimeout> | null = null
   private _countInRemaining = 0
+  private _countInTotal = 0
   private _nextTickTime = 0
 
   constructor(measures: TabMeasure[], options?: PlayerOptions) {
@@ -45,6 +47,7 @@ export class TabPlayer {
       onBeat: options?.onBeat,
       onMeasure: options?.onMeasure,
       onNote: options?.onNote,
+      onCountIn: options?.onCountIn,
       onEnd: options?.onEnd,
     }
 
@@ -99,6 +102,7 @@ export class TabPlayer {
     if (this._options.countIn && this._index === 0) {
       const ts = this._measures[0]?.timeSignature
       this._countInRemaining = ts ? ts[0] : 4
+      this._countInTotal = this._countInRemaining
       this._runCountIn()
     } else {
       this._advance()
@@ -137,6 +141,11 @@ export class TabPlayer {
     this._state.tempo = this._options.tempo
   }
 
+  /** Toggle looping without recreating the player. */
+  setLoop(loop: boolean): void {
+    this._options.loop = loop
+  }
+
   destroy(): void {
     this.stop()
     this._cursor.detach()
@@ -146,6 +155,8 @@ export class TabPlayer {
 
   private _buildBeatMap(): void {
     this._beatMap = []
+    // A time signature stays in effect until another measure changes it
+    let ts: [number, number] = [4, 4]
     for (let mi = 0; mi < this._measures.length; mi++) {
       const m = this._measures[mi]
       let writtenBeats = 0
@@ -158,7 +169,7 @@ export class TabPlayer {
         writtenBeats += dur
       }
 
-      const ts = m.timeSignature ?? [4, 4]
+      if (m.timeSignature) ts = m.timeSignature
       const expectedBeats = ts[0] * (4 / ts[1])
       const remainder = expectedBeats - writtenBeats
 
@@ -223,6 +234,10 @@ export class TabPlayer {
       this._advance()
       return
     }
+    this._options.onCountIn?.(
+      this._countInTotal - this._countInRemaining + 1,
+      this._countInTotal,
+    )
     this._countInRemaining--
     const quarterMs = (60 / this._options.tempo) * 1000
     this._nextTickTime += quarterMs

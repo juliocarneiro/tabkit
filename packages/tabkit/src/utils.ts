@@ -1,8 +1,8 @@
-import type { TabBeat, TabNote, TabMeasure } from './types.js'
+import type { TabBeat, TabNote, TabMeasure, LayoutMetrics } from './types.js'
 
-/** XML-escape a string for safe SVG embedding */
+/** XML-escape a string for safe SVG embedding (text content and attribute values) */
 export function esc(str: string): string {
-  return str
+  return String(str)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -39,12 +39,25 @@ export function flattenBeat(beat: TabBeat): TabNote[] {
   return Array.isArray(beat) ? beat : [beat]
 }
 
+/** Rhythmic length of a beat in quarter notes (longest note of a chord wins) */
+export function beatDurationBeats(beat: TabBeat): number {
+  const notes = flattenBeat(beat)
+  if (notes.length === 0) return 1
+  let max = 0
+  for (const n of notes) max = Math.max(max, durationToBeats(n.duration))
+  return max
+}
+
+/** Smallest horizontal slot a beat can take, so fret numbers never overlap */
+export const DEFAULT_MIN_BEAT_WIDTH = 20
+
+/** Pixel width of a beat: proportional to its duration, never below the minimum slot */
+export function beatPixelWidth(beat: TabBeat, layout: LayoutMetrics): number {
+  const min = layout.minBeatWidth ?? DEFAULT_MIN_BEAT_WIDTH
+  return Math.max(beatDurationBeats(beat) * layout.beatWidth, min)
+}
+
 /** Get the total duration of a measure in quarter-note beats */
 export function measureDurationBeats(measure: TabMeasure): number {
-  return measure.beats.reduce((sum, beat) => {
-    const notes = flattenBeat(beat)
-    const durations = notes.map((n) => durationToBeats(n.duration))
-    const maxDur = durations.length > 0 ? Math.max(...durations) : 1
-    return sum + maxDur
-  }, 0)
+  return measure.beats.reduce((sum, beat) => sum + beatDurationBeats(beat), 0)
 }

@@ -1,7 +1,9 @@
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react'
-import { TabRenderer, flattenBeat } from '@tabkit/core'
+import { TabRenderer } from '@tabkit/core'
+import type { TabNote } from '@tabkit/core'
 import { TabPlayer as TabPlayerEngine } from '@tabkit/player'
 import type { TabPlayerProps } from './types.js'
+import { noteFromEvent } from './noteClick.js'
 
 /**
  * TabPlayer renders a tablature with integrated playback controls.
@@ -28,16 +30,20 @@ export function TabPlayer(props: TabPlayerProps) {
   const onNoteRef = useRef(onNote)
   const onEndRef = useRef(onEnd)
   const onNoteClickRef = useRef(onNoteClick)
+  const measuresRef = useRef(tabOptions.measures)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentMeasure, setCurrentMeasure] = useState(0)
   const [currentBeat, setCurrentBeat] = useState(0)
   const [currentTempo, setCurrentTempo] = useState(tempo)
+  const tempoRef = useRef(currentTempo)
+  const loopRef = useRef(loop)
 
   // Keep callback refs up to date without recreating the player
   onBeatRef.current = onBeat
   onNoteRef.current = onNote
   onEndRef.current = onEnd
   onNoteClickRef.current = onNoteClick
+  measuresRef.current = tabOptions.measures
 
   const svgString = useMemo(
     () => TabRenderer.svg(tabOptions),
@@ -51,6 +57,9 @@ export function TabPlayer(props: TabPlayerProps) {
       tabOptions.showTuning,
       tabOptions.showTimeSignature,
       tabOptions.noteLabels,
+      tabOptions.id,
+      tabOptions.ariaTitle,
+      tabOptions.ariaDescription,
     ],
   )
 
@@ -61,16 +70,16 @@ export function TabPlayer(props: TabPlayerProps) {
 
     const svg = el.querySelector('svg') as SVGSVGElement | null
 
-    const player = new TabPlayerEngine(tabOptions.measures, {
-      tempo: currentTempo,
-      loop,
+    const player = new TabPlayerEngine(measuresRef.current, {
+      tempo: tempoRef.current,
+      loop: loopRef.current,
       countIn,
       onBeat: (m: number, b: number) => {
         setCurrentMeasure(m)
         setCurrentBeat(b)
         onBeatRef.current?.(m, b)
       },
-      onNote: (notes: import('@tabkit/core').TabNote[], m: number, b: number, t: number) => {
+      onNote: (notes: TabNote[], m: number, b: number, t: number) => {
         onNoteRef.current?.(notes, m, b, t)
       },
       onEnd: () => {
@@ -87,49 +96,49 @@ export function TabPlayer(props: TabPlayerProps) {
     return () => {
       player.destroy()
       playerRef.current = null
+      // The old player is gone — never leave the UI claiming it still plays
+      setIsPlaying(false)
+      setCurrentMeasure(0)
+      setCurrentBeat(0)
     }
-  }, [svgString, currentTempo, loop, countIn])
+  }, [svgString, countIn])
+
+  // The `tempo` prop stays in control after mount
+  useEffect(() => {
+    setCurrentTempo(tempo)
+  }, [tempo])
+
+  // Tempo and loop are applied to the live player, without restarting it
+  useEffect(() => {
+    tempoRef.current = currentTempo
+    playerRef.current?.setTempo(currentTempo)
+  }, [currentTempo])
 
   useEffect(() => {
-    if (!onNoteClickRef.current) return
+    loopRef.current = loop
+    playerRef.current?.setLoop(loop)
+  }, [loop])
+
+  const clickable = !!onNoteClick
+  useEffect(() => {
+    if (!clickable) return
     const el = containerRef.current
     if (!el) return
 
     const handler = (e: MouseEvent) => {
-      const target = e.target as SVGElement
-      if (target.tagName !== 'text') return
-
-      const measure = target.getAttribute('data-measure')
-      const beat = target.getAttribute('data-beat')
-      const string = target.getAttribute('data-string')
-      const fret = target.getAttribute('data-fret')
-
-      if (measure !== null && beat !== null && string !== null && fret !== null) {
-        const mi = Number(measure)
-        const bi = Number(beat)
-        const si = Number(string)
-        const fi = Number(fret)
-
-        const m = tabOptions.measures[mi]
-        const beatData = m?.beats[bi]
-        const notes = beatData ? flattenBeat(beatData) : []
-        const matched = notes.find((n) => n.string === si && n.fret === fi)
-
-        onNoteClickRef.current?.(
-          matched ?? { string: si, fret: fi, duration: '4n' as import('@tabkit/core').Duration },
-          mi,
-          bi,
-        )
-      }
+      const hit = noteFromEvent(e, measuresRef.current)
+      if (hit) onNoteClickRef.current?.(hit.note, hit.measure, hit.beat)
     }
 
     el.addEventListener('click', handler)
     return () => el.removeEventListener('click', handler)
-  }, [onNoteClick, tabOptions.measures])
+  }, [clickable])
 
   const play = useCallback(() => {
-    playerRef.current?.play()
-    setIsPlaying(true)
+    const player = playerRef.current
+    if (!player) return
+    player.play()
+    setIsPlaying(player.isPlaying)
   }, [])
 
   const pause = useCallback(() => {
@@ -158,6 +167,7 @@ export function TabPlayer(props: TabPlayerProps) {
     border: '1px solid #ccc',
     borderRadius: '4px',
     background: '#fff',
+    color: '#111',
     cursor: 'pointer',
     fontSize: '13px',
   }

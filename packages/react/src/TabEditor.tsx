@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
-import { TabRenderer, resolveInstrument, DEFAULT_LAYOUT } from '@tabkit/core'
-import type { TabMeasure, TabNote, Duration } from '@tabkit/core'
+import { TabRenderer, resolveInstrument, computeTabLayout } from '@tabkit/core'
+import type { TabMeasure, TabNote, TabOptions } from '@tabkit/core'
 import type { TabEditorProps } from './types.js'
 
 function createEmptyMeasures(count: number): TabMeasure[] {
@@ -58,63 +58,62 @@ export function TabEditor(props: TabEditorProps) {
     const el = containerRef.current
     if (!el) return
 
-    const svgString = TabRenderer.svg({
+    el.innerHTML = TabRenderer.svg({
       measures,
       instrument: instrumentProp,
       theme,
       width,
       layout: 'responsive',
     })
-    el.innerHTML = svgString
   }, [measures, instrumentProp, theme, width, isClient])
 
   const handleSvgClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!isClient) return
       const el = containerRef.current
-      if (!el) return
+      const svg = el?.querySelector('svg')
+      if (!el || !svg) return
 
-      const svg = el.querySelector('svg')
-      if (!svg) return
-
-      const rect = svg.getBoundingClientRect()
-      const clickX = e.clientX - rect.left
-      const clickY = e.clientY - rect.top
-
-      const stringIdx = Math.round(
-        (clickY - DEFAULT_LAYOUT.marginTop) / DEFAULT_LAYOUT.stringSpacing,
-      )
-      if (stringIdx < 0 || stringIdx >= instrument.strings) return
-      const stringNum = stringIdx + 1
-
-      const showTuning = true
-      const contentStartX =
-        DEFAULT_LAYOUT.marginLeft +
-        (showTuning ? DEFAULT_LAYOUT.tuningWidth : 0) +
-        DEFAULT_LAYOUT.barlinePadding
-
-      let measureIdx = 0
-      if (measures.length > 1) {
-        const totalContentWidth = width - contentStartX - DEFAULT_LAYOUT.marginRight
-        const mw = totalContentWidth / measures.length
-        measureIdx = Math.min(
-          Math.floor((clickX - contentStartX) / mw),
-          measures.length - 1,
-        )
-        measureIdx = Math.max(0, measureIdx)
+      // Hit-test against the renderer's own layout, in SVG units
+      const options: TabOptions = {
+        measures,
+        instrument: instrumentProp,
+        width,
+        layout: 'responsive',
       }
+      const tabLayout = computeTabLayout(options)
+      const rect = svg.getBoundingClientRect()
+      const scaleX = rect.width > 0 ? tabLayout.width / rect.width : 1
+      const scaleY = rect.height > 0 ? tabLayout.height / rect.height : 1
+      const x = (e.clientX - rect.left) * scaleX
+      const y = (e.clientY - rect.top) * scaleY
 
+      const tolerance = tabLayout.stringSpacing / 2
+      const line = tabLayout.lines.find(
+        (l) => y >= l.top - tolerance && y <= l.bottom + tolerance,
+      )
+      if (!line || line.measures.length === 0) return
+
+      const stringIdx = Math.round((y - line.top) / tabLayout.stringSpacing)
+      if (stringIdx < 0 || stringIdx >= instrument.strings) return
+
+      const first = line.measures[0]
+      const last = line.measures[line.measures.length - 1]
+      if (x < first.x || x > last.x + last.width) return
+      const box =
+        line.measures.find((b) => x >= b.x && x < b.x + b.width) ?? last
+
+      const containerRect = el.getBoundingClientRect()
       setOverlay({
         visible: true,
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-        stringNum,
-        measureIdx,
+        x: e.clientX - containerRect.left,
+        y: e.clientY - containerRect.top,
+        stringNum: stringIdx + 1,
+        measureIdx: box.index,
       })
 
       setTimeout(() => inputRef.current?.focus(), 0)
     },
-    [isClient, instrument, measures, width],
+    [instrument.strings, instrumentProp, measures, width],
   )
 
   const commitFret = useCallback(
@@ -128,7 +127,7 @@ export function TabEditor(props: TabEditorProps) {
       const newNote: TabNote = {
         string: overlay.stringNum,
         fret: fretNum,
-        duration: '8n' as Duration,
+        duration: '8n',
       }
 
       const updated = [...measures]
@@ -173,6 +172,7 @@ export function TabEditor(props: TabEditorProps) {
           min={0}
           max={instrument.frets}
           placeholder="fret"
+          aria-label={`Fret for string ${overlay.stringNum}, measure ${overlay.measureIdx + 1}`}
           onKeyDown={handleInputKeyDown}
           onBlur={handleInputBlur}
           style={{
@@ -187,6 +187,7 @@ export function TabEditor(props: TabEditorProps) {
             borderRadius: 4,
             outline: 'none',
             background: '#fff',
+            color: '#111',
             zIndex: 10,
           }}
         />

@@ -66,8 +66,9 @@ export function wrapWithA11y(
   height: number,
   background: string,
   accentColor?: string,
+  id?: string,
 ): string {
-  const uid = ++_idCounter
+  const uid = id ? id.replace(/[^A-Za-z0-9_-]/g, '-') : String(++_idCounter)
   const titleId = `tk-title-${uid}`
   const descId = `tk-desc-${uid}`
   const accent = accentColor ? `--tk-accent:${accentColor};` : ''
@@ -79,8 +80,8 @@ export function wrapWithA11y(
 
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" ` +
-    `width="${width}" height="${height}" ` +
-    `viewBox="0 0 ${width} ${height}" ` +
+    `width="${Number(width)}" height="${Number(height)}" ` +
+    `viewBox="0 0 ${Number(width)} ${Number(height)}" ` +
     `role="img" aria-labelledby="${titleId} ${descId}" ` +
     `style="background:${background};${accent}">` +
     `<defs><style>${builtInStyles}</style></defs>` +

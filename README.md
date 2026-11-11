@@ -137,6 +137,7 @@ TabRenderer.svg({
 | `showTimeSignature` | `boolean` | `true` | Show time signature |
 | `noteLabels` | `boolean` | `false` | Show note names (C, D#, …) below fret numbers — works for any instrument |
 | `onNoteClick` | `(note, measure, beat) => void` | — | Callback when a note is clicked (browser) |
+| `id` | `string` | auto | Stable id for the SVG title/desc ids — set it for deterministic (SSR/snapshot) output |
 | `ariaTitle` | `string` | auto | Custom accessible title |
 | `ariaDescription` | `string` | auto | Custom accessible description |
 
@@ -151,6 +152,8 @@ TabRenderer.svg({
   layout: 'responsive',     // breaks into ~4 lines of 4 measures
 })
 ```
+
+The SVG never clips its content: with `layout: 'fixed'` it grows to fit the single row, and `computeTabLayout(options)` returns the exact position of every line and measure (useful for hit-testing and overlays).
 
 ## Left-Handed Mode
 
@@ -228,6 +231,9 @@ E|---x---1---3---|
 Supports:
 - Single and double-digit fret numbers
 - Multiple measures separated by `|`
+- Multiple systems separated by a blank line (or pass `{ strings: 6 }` when they are stacked without one)
+- Tuning labels with accidentals (`Eb|`, `F#|`)
+- Harmonics (`<12>`)
 - Muted strings (`x`)
 - Technique markers (`h` = hammer-on, `p` = pull-off, `/` or `\` = slide, `b` = bend, `~` = vibrato)
 
@@ -267,6 +273,7 @@ player.pause()
 player.stop()
 player.seek(2, 0)    // jump to measure 2, beat 0
 player.setTempo(140)
+player.setLoop(true)  // toggle looping on a live player
 player.destroy()
 ```
 

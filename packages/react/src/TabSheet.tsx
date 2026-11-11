@@ -1,6 +1,7 @@
 import { useRef, useEffect, useMemo } from 'react'
-import { TabRenderer, flattenBeat } from '@tabkit/core'
+import { TabRenderer } from '@tabkit/core'
 import type { TabSheetProps } from './types.js'
+import { noteFromEvent } from './noteClick.js'
 
 /**
  * TabSheet renders a static tablature SVG.
@@ -15,6 +16,10 @@ export function TabSheet(props: TabSheetProps) {
   } = props
 
   const containerRef = useRef<HTMLDivElement>(null)
+  const onNoteClickRef = useRef(onNoteClick)
+  const measuresRef = useRef(tabOptions.measures)
+  onNoteClickRef.current = onNoteClick
+  measuresRef.current = tabOptions.measures
 
   const svgString = useMemo(
     () => TabRenderer.svg(tabOptions),
@@ -28,6 +33,7 @@ export function TabSheet(props: TabSheetProps) {
       tabOptions.showTuning,
       tabOptions.showTimeSignature,
       tabOptions.noteLabels,
+      tabOptions.id,
       tabOptions.ariaTitle,
       tabOptions.ariaDescription,
     ],
@@ -39,42 +45,20 @@ export function TabSheet(props: TabSheetProps) {
     el.innerHTML = svgString
   }, [svgString])
 
+  const clickable = !!onNoteClick
   useEffect(() => {
-    if (!onNoteClick) return
+    if (!clickable) return
     const el = containerRef.current
     if (!el) return
 
     const handler = (e: MouseEvent) => {
-      const target = e.target as SVGElement
-      if (target.tagName !== 'text') return
-
-      const measure = target.getAttribute('data-measure')
-      const beat = target.getAttribute('data-beat')
-      const string = target.getAttribute('data-string')
-      const fret = target.getAttribute('data-fret')
-
-      if (measure !== null && beat !== null && string !== null && fret !== null) {
-        const mi = Number(measure)
-        const bi = Number(beat)
-        const si = Number(string)
-        const fi = Number(fret)
-
-        const m = tabOptions.measures[mi]
-        const beatData = m?.beats[bi]
-        const notes = beatData ? flattenBeat(beatData) : []
-        const matched = notes.find((n) => n.string === si && n.fret === fi)
-
-        onNoteClick(
-          matched ?? { string: si, fret: fi, duration: '4n' },
-          mi,
-          bi,
-        )
-      }
+      const hit = noteFromEvent(e, measuresRef.current)
+      if (hit) onNoteClickRef.current?.(hit.note, hit.measure, hit.beat)
     }
 
     el.addEventListener('click', handler)
     return () => el.removeEventListener('click', handler)
-  }, [onNoteClick, tabOptions.measures])
+  }, [clickable])
 
   return <div ref={containerRef} className={className} style={style} />
 }

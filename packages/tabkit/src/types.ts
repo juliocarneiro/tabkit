@@ -151,6 +151,11 @@ export interface TabOptions {
   showTimeSignature?: boolean
   noteLabels?: boolean
   onNoteClick?: (note: TabNote, measure: number, beat: number) => void
+  /**
+   * Stable id used for the SVG title/desc element ids. Defaults to an
+   * auto-incrementing counter; set it for deterministic (SSR/snapshot) output.
+   */
+  id?: string
   ariaTitle?: string
   ariaDescription?: string
 }
@@ -179,6 +184,8 @@ export interface LayoutMetrics {
   marginRight: number
   tuningWidth: number
   lineGap: number
+  /** Smallest horizontal slot of a beat, so short notes never overlap (default: 20) */
+  minBeatWidth?: number
 }
 
 export const DEFAULT_LAYOUT: LayoutMetrics = {
