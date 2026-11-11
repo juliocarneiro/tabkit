@@ -8,6 +8,8 @@ export interface PlayerOptions {
   onBeat?: (measure: number, beat: number) => void
   onMeasure?: (measure: number) => void
   onNote?: (notes: TabNote[], measure: number, beat: number, tempo: number) => void
+  /** Fired on each count-in click: `beat` is 1-based, `total` the count-in length */
+  onCountIn?: (beat: number, total: number) => void
   onEnd?: () => void
 }
 

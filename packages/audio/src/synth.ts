@@ -21,22 +21,22 @@ export interface ToneOptions {
 export class Synth {
   private _ctx: AudioContext | null = null
   private _master: GainNode | null = null
+  private _volume = 1
+  private _muted = false
 
-  private _getCtx(): AudioContext {
+  /** Lazily create the AudioContext. Returns null where Web Audio is unavailable (SSR, old browsers). */
+  private _getCtx(): AudioContext | null {
     if (!this._ctx) {
+      if (typeof AudioContext === 'undefined') return null
       this._ctx = new AudioContext()
       this._master = this._ctx.createGain()
+      this._master.gain.value = this._muted ? 0 : this._volume
       this._master.connect(this._ctx.destination)
     }
     if (this._ctx.state === 'suspended') {
       this._ctx.resume()
     }
     return this._ctx
-  }
-
-  private _getMaster(): GainNode {
-    this._getCtx()
-    return this._master as GainNode
   }
 
   get context(): AudioContext | null {
@@ -52,7 +52,8 @@ export class Synth {
     options?: ToneOptions,
   ): void {
     const ctx = this._getCtx()
-    const master = this._getMaster()
+    const master = this._master
+    if (!ctx || !master) return
     const now = ctx.currentTime
 
     const waveform = options?.waveform ?? 'triangle'
@@ -107,28 +108,39 @@ export class Synth {
     }
   }
 
-  /** Set master output volume (0–1). */
+  /** Push the current volume/mute state to the master gain, if it exists yet. */
+  private _applyGain(): void {
+    if (this._master && this._ctx) {
+      this._master.gain.setValueAtTime(
+        this._muted ? 0 : this._volume,
+        this._ctx.currentTime,
+      )
+    }
+  }
+
+  /**
+   * Set master output volume (0–1). Does not create the AudioContext:
+   * the value is remembered and applied on the first tone.
+   */
   setVolume(volume: number): void {
-    const ctx = this._getCtx()
-    const master = this._getMaster()
-    master.gain.setValueAtTime(
-      Math.max(0, Math.min(1, volume)),
-      ctx.currentTime,
-    )
+    this._volume = Math.max(0, Math.min(1, volume))
+    this._applyGain()
+  }
+
+  get volume(): number {
+    return this._volume
   }
 
   /** Mute output (sets master gain to 0). */
   mute(): void {
-    if (this._master && this._ctx) {
-      this._master.gain.setValueAtTime(0, this._ctx.currentTime)
-    }
+    this._muted = true
+    this._applyGain()
   }
 
-  /** Unmute output (restores master gain to 1). */
+  /** Unmute output (restores the master volume). */
   unmute(): void {
-    if (this._master && this._ctx) {
-      this._master.gain.setValueAtTime(1, this._ctx.currentTime)
-    }
+    this._muted = false
+    this._applyGain()
   }
 
   /** Close the AudioContext and release resources. */

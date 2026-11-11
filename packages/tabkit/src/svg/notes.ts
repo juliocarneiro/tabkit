@@ -1,5 +1,5 @@
 import type { TabBeat, TabTheme, LayoutMetrics, InstrumentConfig } from '../types.js'
-import { flattenBeat, durationToBeats, esc } from '../utils.js'
+import { flattenBeat, beatPixelWidth, esc } from '../utils.js'
 
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
@@ -14,9 +14,10 @@ const NOTE_TO_SEMITONE: Record<string, number> = {
 }
 
 function fretToNoteName(tuningLabel: string, fret: number): string {
-  const semitone = NOTE_TO_SEMITONE[tuningLabel]
+  // Accept labels with an octave ("E2") by ignoring the digits
+  const semitone = NOTE_TO_SEMITONE[tuningLabel.replace(/-?\d+$/, '')]
   if (semitone === undefined) return ''
-  return NOTE_NAMES[(semitone + fret) % 12]
+  return NOTE_NAMES[(((semitone + fret) % 12) + 12) % 12]
 }
 
 /**
@@ -40,9 +41,7 @@ export function renderNotes(
 
   for (let beatIdx = 0; beatIdx < beats.length; beatIdx++) {
     const notes = flattenBeat(beats[beatIdx])
-    const beatDurations = notes.map((n) => durationToBeats(n.duration))
-    const beatDur = beatDurations.length > 0 ? Math.max(...beatDurations) : 1
-    const beatW = beatDur * layout.beatWidth
+    const beatW = beatPixelWidth(beats[beatIdx], layout)
 
     for (const note of notes) {
       const stringIdx = leftHanded
@@ -53,23 +52,23 @@ export function renderNotes(
       const isHarmonic = note.technique === 'harmonic'
       const label = note.text ?? (isHarmonic ? `⟨${note.fret}⟩` : String(note.fret))
       const fontSize = label.length > 2 ? 10 : 12
+      const data =
+        `data-measure="${measureIndex}" data-beat="${beatIdx}" ` +
+        `data-string="${Number(note.string)}" data-fret="${Number(note.fret)}"`
 
       parts.push(
-        `<rect x="${cx - 8}" y="${y - 8}" width="16" height="16" rx="3" fill="${theme.background}" />`,
+        `<rect x="${cx - 8}" y="${y - 8}" width="16" height="16" rx="3" fill="${theme.background}" ${data}/>`,
       )
       parts.push(
         `<text x="${cx}" y="${y}" text-anchor="middle" dominant-baseline="central" ` +
           `fill="${note.accent ? theme.accentColor : theme.fretNumberColor}" ` +
           `font-family="${theme.fontFamily}" font-size="${fontSize}" font-weight="700" ` +
-          `data-measure="${measureIndex}" data-beat="${beatIdx}" data-string="${note.string}" data-fret="${note.fret}">` +
-          `${esc(label)}</text>`,
+          `${data}>${esc(label)}</text>`,
       )
 
       if (showNoteLabels) {
-        const tuningIdx = leftHanded
-          ? instrument.strings - note.string
-          : note.string - 1
-        const tuningLabel = instrument.tuning[tuningIdx] ?? ''
+        // The pitch of a string does not depend on handedness — only its position does
+        const tuningLabel = instrument.tuning[note.string - 1] ?? ''
         const noteName = fretToNoteName(tuningLabel, note.fret)
         if (noteName) {
           parts.push(

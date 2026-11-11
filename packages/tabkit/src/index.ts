@@ -34,7 +34,16 @@ export { lightTheme, darkTheme, resolveTheme } from './themes/index.js'
 // Layout
 export { reflowMeasures } from './layout/reflow.js'
 export type { ReflowResult } from './layout/reflow.js'
-export { measureWidth, layoutMeasures } from './layout/horizontal.js'
+export {
+  measureWidth,
+  measureContentWidth,
+  layoutMeasures,
+  timeSignatureFlags,
+  TIME_SIGNATURE_WIDTH,
+} from './layout/horizontal.js'
+export type { MeasureLayout } from './layout/horizontal.js'
+export { computeTabLayout } from './layout/compute.js'
+export type { TabLayout, LineBox, MeasureBox } from './layout/compute.js'
 
 // Left-handed
 export { mirrorMeasures, applyLeftHanded } from './left-handed.js'
@@ -43,4 +52,10 @@ export { mirrorMeasures, applyLeftHanded } from './left-handed.js'
 export { generateAriaTitle, generateAriaDescription } from './accessibility.js'
 
 // Utilities
-export { durationToBeats, flattenBeat, measureDurationBeats } from './utils.js'
+export {
+  durationToBeats,
+  flattenBeat,
+  measureDurationBeats,
+  beatDurationBeats,
+  beatPixelWidth,
+} from './utils.js'

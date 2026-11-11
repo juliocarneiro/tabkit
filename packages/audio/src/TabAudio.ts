@@ -27,7 +27,9 @@ export class TabAudio {
   constructor(options?: AudioOptions) {
     this._instrument = resolveInstrument(options?.instrument)
     this._waveform = options?.waveform ?? 'triangle'
-    this._volume = options?.volume ?? 0.7
+    this._volume = Math.max(0, Math.min(1, options?.volume ?? 0.7))
+    // The master gain carries the volume; per-note gain only carries accents
+    this._synth.setVolume(this._volume)
   }
 
   /**
@@ -45,7 +47,7 @@ export class TabAudio {
 
     this._synth.playTone(freq, durationSec, {
       waveform: this._waveform,
-      volume: this._volume * (note.accent ? 1.0 : 0.8),
+      volume: note.accent ? 1.0 : 0.8,
     })
   }
 

@@ -11,7 +11,8 @@ import {
   DEFAULT_LAYOUT as defaultLayout,
 } from './types.js'
 import { resolveTheme } from './themes/index.js'
-import { reflowMeasures } from './layout/reflow.js'
+import { computeTabLayout } from './layout/compute.js'
+import type { LineBox } from './layout/compute.js'
 import { renderStrings, renderTuning } from './svg/strings.js'
 import { renderNotes } from './svg/notes.js'
 import { renderBarlines } from './svg/barlines.js'
@@ -19,124 +20,107 @@ import { renderTimeSignature } from './svg/time-sig.js'
 import { renderCursor } from './svg/cursor.js'
 import { renderDecoration } from './svg/decorations.js'
 import { generateAriaTitle, generateAriaDescription, wrapWithA11y } from './accessibility.js'
-import { flattenBeat, durationToBeats } from './utils.js'
-import { esc } from './utils.js'
+import { flattenBeat, beatPixelWidth, esc } from './utils.js'
 
 // ---------------------------------------------------------------------------
 // Internal: render a single tab line (row of measures)
 // ---------------------------------------------------------------------------
 
-function renderLine(
-  measures: TabMeasure[],
-  startMeasureIdx: number,
-  totalMeasures: number,
-  instrument: InstrumentConfig,
-  theme: TabTheme,
-  layout: LayoutMetrics,
-  lineWidth: number,
-  offsetY: number,
-  leftHanded: boolean,
-  showTuning: boolean,
-  showTimeSignature: boolean,
-  noteLabels: boolean,
-): string {
+interface LineContext {
+  measures: TabMeasure[]
+  instrument: InstrumentConfig
+  theme: TabTheme
+  layout: LayoutMetrics
+  stringsStartX: number
+  stringsEndX: number
+  leftHanded: boolean
+  showTuning: boolean
+  noteLabels: boolean
+}
+
+function renderLine(line: LineBox, ctx: LineContext): string {
+  const { measures, instrument, theme, layout, leftHanded } = ctx
+  const offsetY = line.offsetY
   const parts: string[] = []
 
-  // Strings
-  parts.push(renderStrings(instrument, theme, layout, lineWidth, offsetY))
+  parts.push(
+    renderStrings(instrument, theme, layout, ctx.stringsStartX, ctx.stringsEndX, offsetY),
+  )
 
-  // Tuning labels
-  if (showTuning) {
+  if (ctx.showTuning) {
     parts.push(renderTuning(instrument, theme, layout, offsetY, leftHanded))
   }
 
-  const contentStartX = layout.marginLeft + (showTuning ? layout.tuningWidth : 0)
-  let x = contentStartX
+  const first = line.measures[0]
+  if (!first) return parts.join('')
 
-  const isFirstLine = startMeasureIdx === 0
-
-  // Opening barline
+  // Opening barline of the line
   parts.push(
-    renderBarlines(
-      x,
-      instrument,
-      theme,
-      layout,
-      offsetY,
-      measures[0]?.repeat,
-      isFirstLine,
-      false,
-    ),
+    renderBarlines(first.x, instrument, theme, layout, offsetY, {
+      repeatStart: !!measures[first.index].repeat?.start,
+      isFirst: first.index === 0,
+    }),
   )
-  x += layout.barlinePadding
 
-  // Time signature on first measure if present
-  if (showTimeSignature && measures[0]?.timeSignature) {
-    parts.push(
-      renderTimeSignature(
-        measures[0].timeSignature,
-        x + 8,
-        instrument,
-        theme,
-        layout,
-        offsetY,
-      ),
-    )
-    x += 24
-  }
+  for (let mi = 0; mi < line.measures.length; mi++) {
+    const box = line.measures[mi]
+    const measure = measures[box.index]
+    const nextBox = line.measures[mi + 1]
 
-  // Render each measure
-  for (let mi = 0; mi < measures.length; mi++) {
-    const measure = measures[mi]
-    const globalMeasureIdx = startMeasureIdx + mi
+    if (box.timeSignature && measure.timeSignature) {
+      parts.push(
+        renderTimeSignature(
+          measure.timeSignature,
+          box.x + layout.barlinePadding + 12,
+          instrument,
+          theme,
+          layout,
+          offsetY,
+        ),
+      )
+    }
 
-    // Label above
     if (measure.label) {
       const labelY = offsetY + layout.marginTop - 14
       parts.push(
-        `<text x="${x}" y="${labelY}" fill="${theme.textColor}" ` +
+        `<text x="${box.contentX}" y="${labelY}" fill="${theme.textColor}" ` +
           `font-family="${theme.fontFamily}" font-size="11" font-weight="600">${esc(measure.label)}</text>`,
       )
     }
 
-    // Notes
-    const { svg: notesSvg, width: notesWidth } = renderNotes(
-      measure.beats,
-      instrument,
-      theme,
-      layout,
-      x,
-      offsetY,
-      leftHanded,
-      globalMeasureIdx,
-      noteLabels,
+    parts.push(
+      renderNotes(
+        measure.beats,
+        instrument,
+        theme,
+        layout,
+        box.contentX,
+        offsetY,
+        leftHanded,
+        box.index,
+        ctx.noteLabels,
+      ).svg,
     )
-    parts.push(notesSvg)
 
-    // Decorations
+    // Technique decorations
     const beats = measure.beats
-    let bx = x
+    let bx = box.contentX
     for (let bi = 0; bi < beats.length; bi++) {
       const notes = flattenBeat(beats[bi])
-      const beatDurations = notes.map((n) => durationToBeats(n.duration))
-      const beatDur = beatDurations.length > 0 ? Math.max(...beatDurations) : 1
-      const beatW = beatDur * layout.beatWidth
+      const beatW = beatPixelWidth(beats[bi], layout)
       const cx = bx + beatW / 2
 
-      const nextNotes =
-        bi < beats.length - 1 ? flattenBeat(beats[bi + 1]) : undefined
-      const nextBeatDurations = nextNotes?.map((n) => durationToBeats(n.duration))
-      const nextBeatDur = nextBeatDurations && nextBeatDurations.length > 0
-        ? Math.max(...nextBeatDurations)
+      const nextBeat = bi < beats.length - 1 ? beats[bi + 1] : undefined
+      const nextNotes = nextBeat ? flattenBeat(nextBeat) : undefined
+      const nextCx = nextBeat
+        ? bx + beatW + beatPixelWidth(nextBeat, layout) / 2
         : undefined
-      const nextCx = nextBeatDur !== undefined ? bx + beatW + (nextBeatDur * layout.beatWidth) / 2 : undefined
 
       for (const note of notes) {
-        const matchingNext = nextNotes?.find((n) => n.string === note.string)
         parts.push(
           renderDecoration({
             note,
-            nextNote: matchingNext,
+            nextNote: nextNotes?.find((n) => n.string === note.string),
             cx,
             nextCx,
             instrument,
@@ -151,26 +135,15 @@ function renderLine(
       bx += beatW
     }
 
-    x += notesWidth
-
-    // Barline after measure
-    x += layout.barlinePadding
-    const isLast =
-      globalMeasureIdx === totalMeasures - 1
-    const nextMeasure = mi < measures.length - 1 ? measures[mi + 1] : undefined
+    // Closing barline of this measure (shared with the next one on the line)
     parts.push(
-      renderBarlines(
-        x,
-        instrument,
-        theme,
-        layout,
-        offsetY,
-        measure.repeat?.end ? measure.repeat : nextMeasure?.repeat,
-        false,
-        isLast,
-      ),
+      renderBarlines(box.x + box.width, instrument, theme, layout, offsetY, {
+        repeatEnd: !!measure.repeat?.end,
+        times: measure.repeat?.times,
+        repeatStart: nextBox ? !!measures[nextBox.index].repeat?.start : false,
+        isLast: box.index === measures.length - 1,
+      }),
     )
-    x += layout.barlinePadding
   }
 
   // Cursor placeholder
@@ -179,67 +152,69 @@ function renderLine(
   return parts.join('')
 }
 
+/** Escape every theme value so user-supplied themes can't break out of attributes */
+function sanitizeTheme(theme: TabTheme): TabTheme {
+  const out = {} as Record<string, string>
+  for (const key of Object.keys(theme)) {
+    out[key] = esc(String((theme as unknown as Record<string, unknown>)[key]))
+  }
+  return out as unknown as TabTheme
+}
+
 // ---------------------------------------------------------------------------
 // Public: static SVG generation
 // ---------------------------------------------------------------------------
 
 function generateSvg(options: TabOptions): string {
   const instrument = resolveInstrument(options.instrument)
-  const theme = resolveTheme(options.theme)
+  const theme = sanitizeTheme(resolveTheme(options.theme))
   const layout = { ...defaultLayout }
-  const width = options.width ?? 800
-  const leftHanded = options.leftHanded ?? false
-  const showTuning = options.showTuning ?? true
-  const showTimeSig = options.showTimeSignature ?? true
-  const showNoteLabels = options.noteLabels ?? false
-  const isResponsive = (options.layout ?? 'responsive') === 'responsive'
+  const measures = options.measures ?? []
 
-  const measures = options.measures
+  const tabLayout = computeTabLayout({ ...options, measures }, layout)
+  const width = tabLayout.width
 
   if (measures.length === 0) {
-    return wrapWithA11y('', 'Empty tablature', 'No measures to display', width, 60, theme.background, theme.accentColor)
-  }
-
-  const { lines, totalHeight } = isResponsive
-    ? reflowMeasures(measures, instrument, layout, width, showTuning)
-    : {
-        lines: [{ measures, startMeasureIndex: 0 }],
-        totalHeight:
-          layout.marginTop +
-          (instrument.strings - 1) * layout.stringSpacing +
-          layout.marginBottom,
-      }
-
-  const stringHeight = (instrument.strings - 1) * layout.stringSpacing
-  const lineHeight = layout.marginTop + stringHeight + layout.marginBottom
-  const svgHeight = totalHeight
-
-  let content = ''
-  for (let li = 0; li < lines.length; li++) {
-    const line = lines[li]
-    const offsetY = li * (lineHeight + layout.lineGap)
-    const lineWidth = width - layout.marginLeft - layout.marginRight
-
-    content += renderLine(
-      line.measures,
-      line.startMeasureIndex,
-      measures.length,
-      instrument,
-      theme,
-      layout,
-      lineWidth,
-      offsetY,
-      leftHanded,
-      showTuning,
-      showTimeSig,
-      showNoteLabels,
+    return wrapWithA11y(
+      '',
+      options.ariaTitle ?? 'Empty tablature',
+      options.ariaDescription ?? 'No measures to display',
+      width,
+      60,
+      theme.background,
+      theme.accentColor,
+      options.id,
     )
   }
+
+  const ctx: LineContext = {
+    measures,
+    instrument,
+    theme,
+    layout,
+    stringsStartX: tabLayout.contentStartX,
+    stringsEndX: width - layout.marginRight,
+    leftHanded: options.leftHanded ?? false,
+    showTuning: options.showTuning ?? true,
+    noteLabels: options.noteLabels ?? false,
+  }
+
+  let content = ''
+  for (const line of tabLayout.lines) content += renderLine(line, ctx)
 
   const title = generateAriaTitle(options, instrument)
   const desc = generateAriaDescription(options, instrument)
 
-  return wrapWithA11y(content, title, desc, width, svgHeight, theme.background, theme.accentColor)
+  return wrapWithA11y(
+    content,
+    title,
+    desc,
+    width,
+    tabLayout.height,
+    theme.background,
+    theme.accentColor,
+    options.id,
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -312,10 +287,13 @@ async function toPNG(
       URL.revokeObjectURL(url)
       canvas.toBlob((b) => {
         if (b) resolve(b)
-        else reject(new Error('Failed to create PNG blob'))
+        else reject(new Error('tabkit: failed to create PNG blob'))
       }, 'image/png')
     }
-    img.onerror = reject
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      reject(new Error('tabkit: failed to rasterize SVG'))
+    }
     img.src = url
   })
 }
@@ -347,7 +325,8 @@ async function download(
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
-  URL.revokeObjectURL(blobUrl)
+  // Give the browser a tick to start the download before releasing the blob
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 0)
 }
 
 // ---------------------------------------------------------------------------
@@ -366,9 +345,9 @@ export class TabRenderer {
   private _options: Partial<TabOptions> = {}
 
   constructor(selector?: string | HTMLElement) {
-    if (typeof selector === 'string' && typeof document !== 'undefined') {
-      this._el = document.querySelector(selector)
-    } else if (selector instanceof HTMLElement) {
+    if (typeof selector === 'string') {
+      if (typeof document !== 'undefined') this._el = document.querySelector(selector)
+    } else if (selector && typeof selector === 'object') {
       this._el = selector
     }
   }

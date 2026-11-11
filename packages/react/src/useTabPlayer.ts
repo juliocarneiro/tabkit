@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react'
 import { TabRenderer } from '@tabkit/core'
+import type { TabNote } from '@tabkit/core'
 import { TabPlayer } from '@tabkit/player'
 import type { UseTabPlayerOptions, UseTabPlayerReturn } from './types.js'
 
@@ -7,6 +8,9 @@ import type { UseTabPlayerOptions, UseTabPlayerReturn } from './types.js'
  * Hook for full control over a TabPlayer instance.
  * Returns a ref to attach to a container div, transport controls,
  * and reactive state.
+ *
+ * Changing `tempo` or `loop` updates the running player in place; changing
+ * anything that re-renders the SVG (measures, width, theme…) stops playback.
  */
 export function useTabPlayer(options: UseTabPlayerOptions): UseTabPlayerReturn {
   const {
@@ -15,6 +19,7 @@ export function useTabPlayer(options: UseTabPlayerOptions): UseTabPlayerReturn {
     theme,
     tempo = 120,
     loop = false,
+    countIn = false,
     width,
     leftHanded,
     onBeat,
@@ -27,6 +32,8 @@ export function useTabPlayer(options: UseTabPlayerOptions): UseTabPlayerReturn {
   const onBeatRef = useRef(onBeat)
   const onNoteRef = useRef(onNote)
   const onEndRef = useRef(onEnd)
+  const tempoRef = useRef(tempo)
+  const loopRef = useRef(loop)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentMeasure, setCurrentMeasure] = useState(0)
   const [currentBeat, setCurrentBeat] = useState(0)
@@ -56,14 +63,15 @@ export function useTabPlayer(options: UseTabPlayerOptions): UseTabPlayerReturn {
     const svg = el.querySelector('svg') as SVGSVGElement | null
 
     const player = new TabPlayer(measures, {
-      tempo,
-      loop,
+      tempo: tempoRef.current,
+      loop: loopRef.current,
+      countIn,
       onBeat: (m: number, b: number) => {
         setCurrentMeasure(m)
         setCurrentBeat(b)
         onBeatRef.current?.(m, b)
       },
-      onNote: (notes: import('@tabkit/core').TabNote[], m: number, b: number, t: number) => {
+      onNote: (notes: TabNote[], m: number, b: number, t: number) => {
         onNoteRef.current?.(notes, m, b, t)
       },
       onEnd: () => {
@@ -80,12 +88,31 @@ export function useTabPlayer(options: UseTabPlayerOptions): UseTabPlayerReturn {
     return () => {
       player.destroy()
       playerRef.current = null
+      // The old player is gone — never leave the UI claiming it still plays
+      setIsPlaying(false)
+      setCurrentMeasure(0)
+      setCurrentBeat(0)
     }
-  }, [svgString, tempo, loop])
+    // `measures` is covered by svgString
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [svgString, countIn])
+
+  // Tempo and loop are applied to the live player, without restarting it
+  useEffect(() => {
+    tempoRef.current = tempo
+    playerRef.current?.setTempo(tempo)
+  }, [tempo])
+
+  useEffect(() => {
+    loopRef.current = loop
+    playerRef.current?.setLoop(loop)
+  }, [loop])
 
   const play = useCallback(() => {
-    playerRef.current?.play()
-    setIsPlaying(true)
+    const player = playerRef.current
+    if (!player) return
+    player.play()
+    setIsPlaying(player.isPlaying)
   }, [])
 
   const pause = useCallback(() => {
@@ -107,6 +134,7 @@ export function useTabPlayer(options: UseTabPlayerOptions): UseTabPlayerReturn {
   }, [])
 
   const setTempo = useCallback((bpm: number) => {
+    tempoRef.current = bpm
     playerRef.current?.setTempo(bpm)
   }, [])
 

@@ -33,6 +33,7 @@ export interface UseTabPlayerOptions {
   theme?: ThemePreset | Partial<TabTheme>
   tempo?: number
   loop?: boolean
+  countIn?: boolean
   width?: number
   leftHanded?: boolean
   onBeat?: (measure: number, beat: number) => void
@@ -67,4 +68,6 @@ export interface UseTabEditorReturn {
   clear: () => void
   undo: () => void
   redo: () => void
+  canUndo: boolean
+  canRedo: boolean
 }

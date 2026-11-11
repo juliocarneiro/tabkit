@@ -47,6 +47,7 @@ new TabPlayer(measures: TabMeasure[], options?: PlayerOptions)
 | `onBeat` | `(measure, beat) => void` | — | Fires on every beat |
 | `onMeasure` | `(measure) => void` | — | Fires at the start of each measure |
 | `onNote` | `(notes, measure, beat, tempo) => void` | — | Fires with the `TabNote[]` data for each beat — wire to `@tabkit/audio` for sound |
+| `onCountIn` | `(beat, total) => void` | — | Fires on each count-in click |
 | `onEnd` | `() => void` | — | Fires when playback ends |
 
 ### Methods
@@ -58,6 +59,7 @@ new TabPlayer(measures: TabMeasure[], options?: PlayerOptions)
 | `stop()` | Stop and reset to beginning |
 | `seek(measure, beat)` | Jump to a specific position |
 | `setTempo(bpm)` | Change tempo during playback |
+| `setLoop(loop)` | Toggle looping during playback |
 | `attachSvg(svg)` | Attach to an SVG element for cursor visualization |
 | `detachSvg()` | Detach from SVG |
 | `destroy()` | Stop and clean up |

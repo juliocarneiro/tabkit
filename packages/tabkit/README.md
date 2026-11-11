@@ -110,6 +110,7 @@ TabRenderer.svg({
 | `leftHanded` | `boolean` | `false` | Mirror for left-handed |
 | `width` | `number` | `800` | SVG width in pixels |
 | `showTuning` | `boolean` | `true` | Show tuning labels |
+| `id` | `string` | auto | Stable id for the SVG title/desc ids — set it for deterministic (SSR/snapshot) output |
 | `showTimeSignature` | `boolean` | `true` | Show time signature |
 | `noteLabels` | `boolean` | `false` | Show note names (C, D#, …) below fret numbers — works for any instrument |
 | `onNoteClick` | `(note, measure, beat) => void` | — | Callback when a note is clicked |

@@ -134,7 +134,15 @@ export function parseMusicXML(
       if (!stringVal || !fretVal) continue
 
       const typeVal = getTagContent(noteXml, 'type')
-      const duration = typeVal ? xmlTypeToDuration(typeVal) : '4n'
+      let duration = typeVal ? xmlTypeToDuration(typeVal) : '4n'
+      // Triplets: <time-modification><actual-notes>3</actual-notes>…
+      if (
+        noteXml.includes('<time-modification') &&
+        getTagContent(noteXml, 'actual-notes') === '3'
+      ) {
+        if (duration === '8n') duration = '8t'
+        else if (duration === '4n') duration = '4t'
+      }
       const isChord = noteXml.includes('<chord')
 
       // Technique detection
@@ -145,6 +153,7 @@ export function parseMusicXML(
       else if (noteXml.includes('<bend')) technique = 'bend'
       else if (noteXml.includes('<harmonic')) technique = 'harmonic'
       else if (noteXml.includes('<tap')) technique = 'tap'
+      else if (/<notehead\b[^>]*>\s*x\s*<\/notehead>/.test(noteXml)) technique = 'mute'
 
       const note: TabNote = {
         string: parseInt(stringVal, 10),
